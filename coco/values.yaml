@@ -30,3 +30,20 @@ mysql:
     limits:
       memory: "768Mi"
       cpu: "500m"
+
+# ---------------------------------------------------------------------
+#  Eureka — serveur de découverte des services
+# ---------------------------------------------------------------------
+eureka:
+  enabled: true
+  repository: eureka-server      # => ghcr.io/wassimayed/eureka-server
+  tag: latest
+  replicas: 1
+  port: 6511
+  resources:
+    requests:
+      memory: "300Mi"
+      cpu: "100m"
+    limits:
+      memory: "600Mi"
+      cpu: "500m"

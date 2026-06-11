@@ -1,0 +1,17 @@
+{{- if .Values.eureka.enabled }}
+# Donne le nom stable "eureka" → les services pointent vers http://eureka:6511/eureka/
+apiVersion: v1
+kind: Service
+metadata:
+  name: eureka
+  labels:
+    app: eureka
+spec:
+  type: ClusterIP
+  selector:
+    app: eureka
+  ports:
+    - name: http
+      port: {{ .Values.eureka.port }}
+      targetPort: {{ .Values.eureka.port }}
+{{- end }}

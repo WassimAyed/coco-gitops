@@ -1,0 +1,51 @@
+{{- if .Values.eureka.enabled }}
+# Eureka = serveur de découverte. Les autres services s'y enregistrent
+# et le consultent pour se trouver entre eux.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eureka
+  labels:
+    app: eureka
+spec:
+  replicas: {{ .Values.eureka.replicas }}
+  selector:
+    matchLabels:
+      app: eureka
+  template:
+    metadata:
+      labels:
+        app: eureka
+    spec:
+      containers:
+        - name: eureka
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.eureka.repository }}:{{ .Values.eureka.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.eureka.port }}
+          env:
+            # --- PIÈGE n°1 corrigé ---
+            # Le code a "server.address=127.0.0.1" (écoute localhost uniquement).
+            # On surcharge par variable d'env : Spring Boot donne la priorité aux
+            # variables d'environnement sur application.properties.
+            - name: SERVER_ADDRESS
+              value: "0.0.0.0"
+            # Eureka s'annonce sous ce nom (= le nom de son Service k8s)
+            - name: EUREKA_INSTANCE_HOSTNAME
+              value: "eureka"
+          resources:
+            {{- toYaml .Values.eureka.resources | nindent 12 }}
+          # Sonde de disponibilité : le port répond-il ? (pas besoin d'actuator)
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.eureka.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          # Sonde de vie : généreuse car Spring Boot met ~40-60s à démarrer
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.eureka.port }}
+            initialDelaySeconds: 90
+            periodSeconds: 20
+            failureThreshold: 5
+{{- end }}
