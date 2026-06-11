@@ -44,6 +44,14 @@ spec:
             # Le service s'enregistre avec son IP de pod (joignable dans le cluster)
             - name: EUREKA_INSTANCE_PREFERIPADDRESS
               value: "true"
+            # --- OAuth Google : on n'utilise pas le vrai login Google ici.
+            # Spring Boot 4 refuse un client-id VIDE si l'inscription existe.
+            # On met des valeurs placeholder juste pour que l'app démarre.
+            # (Pour activer le vrai login : mettre de vraies clés dans un Secret.)
+            - name: OAUTH_GOOGLE_CLIENT_ID
+              value: "disabled-placeholder"
+            - name: OAUTH_GOOGLE_CLIENT_SECRET
+              value: "disabled-placeholder"
           resources:
             {{- toYaml .Values.userService.resources | nindent 12 }}
           readinessProbe:
