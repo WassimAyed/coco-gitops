@@ -1,0 +1,17 @@
+# PIÈCE 4 — L'annuaire : donne un nom stable "mysql" joignable par les
+# autres pods. Grâce au DNS du cluster, "mysql:3306" pointe vers la base.
+# clusterIP: None => Service "headless", idéal pour une base (StatefulSet).
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  clusterIP: None
+  selector:
+    app: mysql
+  ports:
+    - name: mysql
+      port: {{ .Values.mysql.port }}
+      targetPort: 3306

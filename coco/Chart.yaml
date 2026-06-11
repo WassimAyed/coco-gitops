@@ -1,0 +1,6 @@
+apiVersion: v2
+name: coco
+description: Déploiement GitOps du projet CoCo (MySQL + microservices + frontend)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

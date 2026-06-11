@@ -1,0 +1,64 @@
+# PIÈCE 3 (+ PIÈCE 2 intégrée) — La machine MySQL.
+# Le StatefulSet lance le pod, et "volumeClaimTemplates" en bas RÉCLAME
+# automatiquement le disque persistant (PIÈCE 2, le PVC) et le branche.
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+spec:
+  serviceName: mysql          # relie le StatefulSet au Service "mysql"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+        - name: mysql
+          image: {{ .Values.mysql.image }}
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: 3306
+          env:
+            # Le mot de passe vient du Secret (PIÈCE 1), pas écrit en dur ici
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+          volumeMounts:
+            - name: data                              # le disque persistant
+              mountPath: /var/lib/mysql
+            - name: init                              # le script de création des bases
+              mountPath: /docker-entrypoint-initdb.d
+          resources:
+            {{- toYaml .Values.mysql.resources | nindent 12 }}
+          readinessProbe:                             # "MySQL est-il prêt à répondre ?"
+            exec:
+              command: ["bash", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p${MYSQL_ROOT_PASSWORD}"]
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:                              # "MySQL est-il toujours vivant ?"
+            exec:
+              command: ["bash", "-c", "mysqladmin ping -h 127.0.0.1 -uroot -p${MYSQL_ROOT_PASSWORD}"]
+            initialDelaySeconds: 40
+            periodSeconds: 20
+      volumes:
+        - name: init
+          configMap:
+            name: mysql-init
+  # PIÈCE 2 — Le PVC : "je réserve un disque persistant de cette taille".
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: {{ .Values.mysql.storage }}

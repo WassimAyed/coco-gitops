@@ -1,0 +1,14 @@
+# PIÈCE 5 — Le script d'installation : crée automatiquement les 2 bases
+# au tout premier démarrage de MySQL. L'image officielle mysql exécute
+# chaque fichier .sql présent dans /docker-entrypoint-initdb.d/.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql-init
+  labels:
+    app: mysql
+data:
+  init.sql: |
+    {{- range .Values.mysql.databases }}
+    CREATE DATABASE IF NOT EXISTS `{{ . }}`;
+    {{- end }}

@@ -1,0 +1,32 @@
+# =====================================================================
+#  Valeurs globales du déploiement CoCo
+#  Toute la configuration vit ICI (esprit GitOps : config dans Git)
+# =====================================================================
+
+global:
+  # Préfixe de toutes tes images sur GitHub Container Registry
+  imageRegistry: ghcr.io/wassimayed
+  imagePullPolicy: IfNotPresent
+
+# ---------------------------------------------------------------------
+#  Base de données MySQL (1 instance, 2 schémas)
+# ---------------------------------------------------------------------
+mysql:
+  enabled: true
+  image: mysql:8.0
+  # Mot de passe root (ira dans un Secret Kubernetes, jamais en clair dans le code)
+  rootPassword: "CocoRoot123"
+  # Taille du disque persistant réservé pour les données
+  storage: 5Gi
+  port: 3306
+  # Bases créées automatiquement au premier démarrage
+  databases:
+    - CoCoUserDB
+    - CoCoCovoiturageDB
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "768Mi"
+      cpu: "500m"
