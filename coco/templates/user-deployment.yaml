@@ -1,0 +1,60 @@
+{{- if .Values.userService.enabled }}
+# userSecurityService : authentification / gestion des utilisateurs.
+# Se connecte à MySQL (base CoCoUserDB) et s'enregistre dans Eureka.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-security-service
+  labels:
+    app: user-security-service
+spec:
+  replicas: {{ .Values.userService.replicas }}
+  selector:
+    matchLabels:
+      app: user-security-service
+  template:
+    metadata:
+      labels:
+        app: user-security-service
+    spec:
+      containers:
+        - name: user-security-service
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.userService.repository }}:{{ .Values.userService.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.userService.port }}
+          env:
+            - name: SERVER_PORT
+              value: "{{ .Values.userService.port }}"
+            # --- Connexion MySQL (on remplace localhost:3308 par le Service k8s) ---
+            - name: DB_URL
+              value: "jdbc:mysql://mysql:3306/CoCoUserDB?createDatabaseIfNotExist=true"
+            - name: DB_USERNAME
+              value: "root"
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+            # --- Connexion Eureka (on remplace localhost:6511 par le Service k8s) ---
+            - name: EUREKA_ENABLED
+              value: "true"
+            - name: EUREKA_DEFAULT_ZONE
+              value: "http://eureka:6511/eureka/"
+            # Le service s'enregistre avec son IP de pod (joignable dans le cluster)
+            - name: EUREKA_INSTANCE_PREFERIPADDRESS
+              value: "true"
+          resources:
+            {{- toYaml .Values.userService.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.userService.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.userService.port }}
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 5
+{{- end }}

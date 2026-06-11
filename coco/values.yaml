@@ -47,3 +47,20 @@ eureka:
     limits:
       memory: "600Mi"
       cpu: "500m"
+
+# ---------------------------------------------------------------------
+#  userSecurityService — authentification / utilisateurs
+# ---------------------------------------------------------------------
+userService:
+  enabled: true
+  repository: user-security-service   # => ghcr.io/wassimayed/user-security-service
+  tag: latest
+  replicas: 1
+  port: 8090
+  resources:
+    requests:
+      memory: "350Mi"
+      cpu: "100m"
+    limits:
+      memory: "700Mi"
+      cpu: "500m"

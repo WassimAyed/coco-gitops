@@ -1,0 +1,18 @@
+{{- if .Values.userService.enabled }}
+# Nom stable "user-security-service" (utilisé en interne ; la gateway
+# y accédera plutôt via Eureka avec lb://USERSECURITYSERVICE).
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-security-service
+  labels:
+    app: user-security-service
+spec:
+  type: ClusterIP
+  selector:
+    app: user-security-service
+  ports:
+    - name: http
+      port: {{ .Values.userService.port }}
+      targetPort: {{ .Values.userService.port }}
+{{- end }}
