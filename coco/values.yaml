@@ -106,7 +106,7 @@ frontend:
   enabled: true
   repository: coco-frontend   # => ghcr.io/wassimayed/coco-frontend
   tag: latest
-  replicas: 1
+  replicas: 2
   port: 80
   ingress:
     className: public   # classe d'ingress de MicroK8s
