@@ -1,0 +1,31 @@
+# =====================================================================
+#  Application ArgoCD — connecte le repo Git au cluster.
+#  ArgoCD surveille ce repo et synchronise automatiquement le cluster
+#  pour qu'il corresponde toujours au chart Helm (source de vérité).
+# =====================================================================
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: coco
+  namespace: argocd          # l'Application vit dans le namespace d'ArgoCD
+spec:
+  project: default
+
+  # --- OÙ se trouve la vérité (ton repo Git) ---
+  source:
+    repoURL: https://github.com/WassimAyed/coco-gitops.git
+    targetRevision: main      # la branche surveillée
+    path: coco                # le dossier du chart Helm dans le repo
+
+  # --- OÙ déployer (le cluster local) ---
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: coco           # le namespace de l'application
+
+  # --- COMMENT synchroniser ---
+  syncPolicy:
+    automated:
+      prune: true             # supprime du cluster ce qui disparaît du Git
+      selfHeal: true          # corrige toute modif manuelle faite hors Git
+    syncOptions:
+      - CreateNamespace=true   # crée le namespace coco s'il n'existe pas
