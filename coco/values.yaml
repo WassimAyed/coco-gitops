@@ -81,3 +81,20 @@ covoiturageService:
     limits:
       memory: "700Mi"
       cpu: "500m"
+
+# ---------------------------------------------------------------------
+#  apiGateway — porte d'entrée HTTP unique du backend
+# ---------------------------------------------------------------------
+apiGateway:
+  enabled: true
+  repository: api-gateway   # => ghcr.io/wassimayed/api-gateway
+  tag: latest
+  replicas: 1
+  port: 9092
+  resources:
+    requests:
+      memory: "350Mi"
+      cpu: "100m"
+    limits:
+      memory: "700Mi"
+      cpu: "500m"

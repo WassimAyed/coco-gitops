@@ -1,0 +1,50 @@
+{{- if .Values.apiGateway.enabled }}
+# apiGateway : la porte d'entrée HTTP unique du backend (Spring Cloud Gateway).
+# Elle découvre les microservices via Eureka (discovery locator) et y route les
+# requêtes /api/**. Le frontend ne parlera qu'à elle.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+spec:
+  replicas: {{ .Values.apiGateway.replicas }}
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+        - name: api-gateway
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.apiGateway.repository }}:{{ .Values.apiGateway.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.apiGateway.port }}
+          env:
+            - name: SERVER_PORT
+              value: "{{ .Values.apiGateway.port }}"
+            # --- Connexion Eureka (on remplace localhost:6511 par le Service k8s) ---
+            # Critique : sans ça la gateway ne trouve aucun microservice.
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka:6511/eureka/"
+            # La gateway s'enregistre avec son IP de pod (joignable dans le cluster)
+            - name: EUREKA_INSTANCE_PREFERIPADDRESS
+              value: "true"
+          resources:
+            {{- toYaml .Values.apiGateway.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.apiGateway.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.apiGateway.port }}
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 5
+{{- end }}

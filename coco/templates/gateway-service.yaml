@@ -1,0 +1,18 @@
+{{- if .Values.apiGateway.enabled }}
+# Nom stable "api-gateway" : le frontend (nginx) proxysera /api vers
+# http://api-gateway:9092 à l'intérieur du cluster.
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-gateway
+  labels:
+    app: api-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: api-gateway
+  ports:
+    - name: http
+      port: {{ .Values.apiGateway.port }}
+      targetPort: {{ .Values.apiGateway.port }}
+{{- end }}
