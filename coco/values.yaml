@@ -98,3 +98,23 @@ apiGateway:
     limits:
       memory: "700Mi"
       cpu: "500m"
+
+# ---------------------------------------------------------------------
+#  frontend — application Angular (nginx) + reverse-proxy vers le backend
+# ---------------------------------------------------------------------
+frontend:
+  enabled: true
+  repository: coco-frontend   # => ghcr.io/wassimayed/coco-frontend
+  tag: latest
+  replicas: 1
+  port: 80
+  ingress:
+    className: public   # classe d'ingress de MicroK8s
+    host: ""            # vide = accessible via l'IP du nœud (http://<IP-master>/)
+  resources:
+    requests:
+      memory: "64Mi"
+      cpu: "50m"
+    limits:
+      memory: "256Mi"
+      cpu: "300m"

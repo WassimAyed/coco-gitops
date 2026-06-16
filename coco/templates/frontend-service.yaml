@@ -1,0 +1,17 @@
+{{- if .Values.frontend.enabled }}
+# Service stable "frontend" : cible de l'Ingress.
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: {{ .Values.frontend.port }}
+      targetPort: {{ .Values.frontend.port }}
+{{- end }}

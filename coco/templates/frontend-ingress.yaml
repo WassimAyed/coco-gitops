@@ -1,0 +1,30 @@
+{{- if .Values.frontend.enabled }}
+# Ingress : la porte d'entrée web du cluster.
+# Le contrôleur ingress de MicroK8s écoute sur les ports 80/443 des nœuds.
+# Toutes les requêtes arrivent au Service "frontend" (nginx), qui sert le
+# site ET proxy les /api, /auth, /users, /user vers le backend.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coco-frontend
+  labels:
+    app: frontend
+  annotations:
+    # Autorise les gros uploads à traverser l'ingress
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: {{ .Values.frontend.ingress.className }}
+  rules:
+    - {{- if .Values.frontend.ingress.host }}
+      host: {{ .Values.frontend.ingress.host | quote }}
+      {{- end }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: {{ .Values.frontend.port }}
+{{- end }}
