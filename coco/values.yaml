@@ -64,3 +64,20 @@ userService:
     limits:
       memory: "700Mi"
       cpu: "500m"
+
+# ---------------------------------------------------------------------
+#  covoiturageService — gestion du covoiturage
+# ---------------------------------------------------------------------
+covoiturageService:
+  enabled: true
+  repository: covoiturage-service   # => ghcr.io/wassimayed/covoiturage-service
+  tag: latest
+  replicas: 1
+  port: 8092
+  resources:
+    requests:
+      memory: "350Mi"
+      cpu: "100m"
+    limits:
+      memory: "700Mi"
+      cpu: "500m"

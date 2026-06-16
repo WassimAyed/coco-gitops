@@ -1,0 +1,18 @@
+{{- if .Values.covoiturageService.enabled }}
+# Nom stable "covoiturage-service" (utilisé en interne ; la gateway
+# y accédera plutôt via Eureka avec lb://COVOITURAGESERVICE).
+apiVersion: v1
+kind: Service
+metadata:
+  name: covoiturage-service
+  labels:
+    app: covoiturage-service
+spec:
+  type: ClusterIP
+  selector:
+    app: covoiturage-service
+  ports:
+    - name: http
+      port: {{ .Values.covoiturageService.port }}
+      targetPort: {{ .Values.covoiturageService.port }}
+{{- end }}

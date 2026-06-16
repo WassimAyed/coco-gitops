@@ -1,0 +1,62 @@
+{{- if .Values.covoiturageService.enabled }}
+# covoiturageService : gestion du covoiturage.
+# Se connecte à MySQL (base CoCoCovoiturageDB) et s'enregistre dans Eureka.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: covoiturage-service
+  labels:
+    app: covoiturage-service
+spec:
+  replicas: {{ .Values.covoiturageService.replicas }}
+  selector:
+    matchLabels:
+      app: covoiturage-service
+  template:
+    metadata:
+      labels:
+        app: covoiturage-service
+    spec:
+      containers:
+        - name: covoiturage-service
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.covoiturageService.repository }}:{{ .Values.covoiturageService.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy }}
+          ports:
+            - containerPort: {{ .Values.covoiturageService.port }}
+          env:
+            # --- PIÈGE n°1 corrigé : le code a "server.address=127.0.0.1" ---
+            # (écoute localhost seulement). On force l'écoute sur toutes les interfaces.
+            - name: SERVER_ADDRESS
+              value: "0.0.0.0"
+            - name: SERVER_PORT
+              value: "{{ .Values.covoiturageService.port }}"
+            # --- Connexion MySQL (on remplace localhost:3308 par le Service k8s) ---
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql:3306/CoCoCovoiturageDB?createDatabaseIfNotExist=true"
+            - name: SPRING_DATASOURCE_USERNAME
+              value: "root"
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-secret
+                  key: mysql-root-password
+            # --- Connexion Eureka (on remplace localhost:6511 par le Service k8s) ---
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka:6511/eureka/"
+            # Le service s'enregistre avec son IP de pod (joignable dans le cluster)
+            - name: EUREKA_INSTANCE_PREFERIPADDRESS
+              value: "true"
+          resources:
+            {{- toYaml .Values.covoiturageService.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.covoiturageService.port }}
+            initialDelaySeconds: 40
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.covoiturageService.port }}
+            initialDelaySeconds: 120
+            periodSeconds: 20
+            failureThreshold: 5
+{{- end }}
