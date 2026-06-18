@@ -110,7 +110,7 @@ frontend:
   port: 80
   ingress:
     className: public   # classe d'ingress de MicroK8s
-    host: ""            # vide = accessible via l'IP du nœud (http://<IP-master>/)
+    host: "coco.local"            # vide = accessible via l'IP du nœud (http://<IP-master>/)
   resources:
     requests:
       memory: "64Mi"
