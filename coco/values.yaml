@@ -35,7 +35,7 @@ mysql:
 eureka:
   enabled: true
   repository: eureka-server # => ghcr.io/wassimayed/eureka-server
-  tag: latest
+  tag: 0467972a685fc6355bc5defa0384b95a7dcf026c
   replicas: 1
   port: 6511
   resources:
@@ -51,7 +51,7 @@ eureka:
 userService:
   enabled: true
   repository: user-security-service # => ghcr.io/wassimayed/user-security-service
-  tag: latest
+  tag: 0467972a685fc6355bc5defa0384b95a7dcf026c
   replicas: 1
   port: 8090
   resources:
@@ -67,7 +67,7 @@ userService:
 covoiturageService:
   enabled: true
   repository: covoiturage-service # => ghcr.io/wassimayed/covoiturage-service
-  tag: latest
+  tag: 0467972a685fc6355bc5defa0384b95a7dcf026c
   replicas: 1
   port: 8092
   resources:
@@ -83,7 +83,7 @@ covoiturageService:
 apiGateway:
   enabled: true
   repository: api-gateway # => ghcr.io/wassimayed/api-gateway
-  tag: latest
+  tag: 0467972a685fc6355bc5defa0384b95a7dcf026c
   replicas: 1
   port: 9092
   resources:
