@@ -7,7 +7,6 @@ global:
   # Préfixe de toutes tes images sur GitHub Container Registry
   imageRegistry: ghcr.io/wassimayed
   imagePullPolicy: IfNotPresent
-
 # ---------------------------------------------------------------------
 #  Base de données MySQL (1 instance, 2 schémas)
 # ---------------------------------------------------------------------
@@ -30,13 +29,12 @@ mysql:
     limits:
       memory: "768Mi"
       cpu: "500m"
-
 # ---------------------------------------------------------------------
 #  Eureka — serveur de découverte des services
 # ---------------------------------------------------------------------
 eureka:
   enabled: true
-  repository: eureka-server      # => ghcr.io/wassimayed/eureka-server
+  repository: eureka-server # => ghcr.io/wassimayed/eureka-server
   tag: latest
   replicas: 1
   port: 6511
@@ -47,13 +45,12 @@ eureka:
     limits:
       memory: "600Mi"
       cpu: "500m"
-
 # ---------------------------------------------------------------------
 #  userSecurityService — authentification / utilisateurs
 # ---------------------------------------------------------------------
 userService:
   enabled: true
-  repository: user-security-service   # => ghcr.io/wassimayed/user-security-service
+  repository: user-security-service # => ghcr.io/wassimayed/user-security-service
   tag: latest
   replicas: 1
   port: 8090
@@ -64,13 +61,12 @@ userService:
     limits:
       memory: "700Mi"
       cpu: "500m"
-
 # ---------------------------------------------------------------------
 #  covoiturageService — gestion du covoiturage
 # ---------------------------------------------------------------------
 covoiturageService:
   enabled: true
-  repository: covoiturage-service   # => ghcr.io/wassimayed/covoiturage-service
+  repository: covoiturage-service # => ghcr.io/wassimayed/covoiturage-service
   tag: latest
   replicas: 1
   port: 8092
@@ -81,13 +77,12 @@ covoiturageService:
     limits:
       memory: "700Mi"
       cpu: "500m"
-
 # ---------------------------------------------------------------------
 #  apiGateway — porte d'entrée HTTP unique du backend
 # ---------------------------------------------------------------------
 apiGateway:
   enabled: true
-  repository: api-gateway   # => ghcr.io/wassimayed/api-gateway
+  repository: api-gateway # => ghcr.io/wassimayed/api-gateway
   tag: latest
   replicas: 1
   port: 9092
@@ -98,19 +93,18 @@ apiGateway:
     limits:
       memory: "700Mi"
       cpu: "500m"
-
 # ---------------------------------------------------------------------
 #  frontend — application Angular (nginx) + reverse-proxy vers le backend
 # ---------------------------------------------------------------------
 frontend:
   enabled: true
-  repository: coco-frontend   # => ghcr.io/wassimayed/coco-frontend
-  tag: latest
+  repository: coco-frontend # => ghcr.io/wassimayed/coco-frontend
+  tag: c2133af74caf91866a7b97f68fc594f1effa9bbd
   replicas: 2
   port: 80
   ingress:
-    className: public   # classe d'ingress de MicroK8s
-    host: "coco.local"            # vide = accessible via l'IP du nœud (http://<IP-master>/)
+    className: public # classe d'ingress de MicroK8s
+    host: "coco.local" # vide = accessible via l'IP du nœud (http://<IP-master>/)
   resources:
     requests:
       memory: "64Mi"
