@@ -1,0 +1,34 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  service.slack: |
+    token: $slack-token
+  template.app-deployed: |
+    message: |
+      :white_check_mark: L'application *{{.app.metadata.name}}* est deployee et saine.
+      Revision : {{.app.status.sync.revision}}
+      Statut : {{.app.status.sync.status}} / {{.app.status.health.status}}
+  template.app-sync-failed: |
+    message: |
+      :x: Echec de synchronisation de *{{.app.metadata.name}}*.
+      Erreur : {{.app.status.operationState.message}}
+  template.app-health-degraded: |
+    message: |
+      :warning: L'application *{{.app.metadata.name}}* est DEGRADEE.
+      Statut sante : {{.app.status.health.status}}
+  trigger.on-deployed: |
+    - description: L'app est synchronisee et saine
+      oncePer: app.status.sync.revision
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+      send: [app-deployed]
+  trigger.on-sync-failed: |
+    - description: Une synchronisation a echoue
+      when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [app-sync-failed]
+  trigger.on-health-degraded: |
+    - description: L'app est passee en Degraded
+      when: app.status.health.status == 'Degraded'
+      send: [app-health-degraded]
