@@ -100,7 +100,7 @@ frontend:
   enabled: true
   repository: coco-frontend # => ghcr.io/wassimayed/coco-frontend
   tag: c2133af74caf91866a7b97f68fc594f1effa9bbd
-  replicas: 2
+  replicas: 3     # 3 pods : assez pour illustrer le canary sans surcharger le cluster
   port: 80
   ingress:
     className: public # classe d'ingress de MicroK8s

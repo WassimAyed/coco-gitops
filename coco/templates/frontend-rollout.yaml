@@ -1,9 +1,9 @@
 {{- if .Values.frontend.enabled }}
 # frontend : application Angular servie par nginx.
-# nginx sert les fichiers statiques ET fait reverse-proxy des appels API
-# (/api -> api-gateway, /auth /users /user -> user-security-service).
-apiVersion: apps/v1
-kind: Deployment
+# On utilise un ROLLOUT (Argo Rollouts) au lieu d'un Deployment classique
+# => déploiement CANARY : la nouvelle version monte progressivement 20→40→60→100 %.
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
 metadata:
   name: frontend
   labels:
@@ -38,4 +38,15 @@ spec:
               port: {{ .Values.frontend.port }}
             initialDelaySeconds: 15
             periodSeconds: 20
+  # ============ LA STRATÉGIE CANARY ============
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20          # 20 % du trafic vers la v2
+        - pause: {duration: 30s} # on observe 30 s
+        - setWeight: 40
+        - pause: {duration: 30s}
+        - setWeight: 60
+        - pause: {}              # ⏸️ PAUSE INFINIE = validation manuelle (tu décides)
+        - setWeight: 100         # promotion finale
 {{- end }}
