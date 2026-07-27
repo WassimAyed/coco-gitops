@@ -1,0 +1,43 @@
+{{- if and .Values.covoiturageService.enabled .Values.covoiturageService.hpa.enabled }}
+# =====================================================================
+#  HPA — Horizontal Pod Autoscaler du covoiturageService.
+#  Surveille le CPU (via metrics-server) et ajuste le nombre de pods
+#  entre minReplicas et maxReplicas pour tenir la cible CPU.
+#  Le % CPU est calculé PAR RAPPORT à la resources.requests.cpu du pod.
+# =====================================================================
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: covoiturage-service
+  labels:
+    app: covoiturage-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: covoiturage-service
+  minReplicas: {{ .Values.covoiturageService.hpa.minReplicas }}
+  maxReplicas: {{ .Values.covoiturageService.hpa.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          # Ex. 50 % : si le CPU moyen dépasse 50 % de la request, l'HPA ajoute des pods.
+          averageUtilization: {{ .Values.covoiturageService.hpa.targetCPUUtilizationPercentage }}
+  # Comportement : monter vite (réactivité), redescendre en douceur (éviter le yo-yo)
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 0     # réagit immédiatement à la charge
+      policies:
+        - type: Pods
+          value: 2                       # jusqu'à +2 pods toutes les 15 s
+          periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 60     # attend 60 s de calme avant de réduire (démo rapide)
+      policies:
+        - type: Pods
+          value: 1                       # -1 pod toutes les 30 s
+          periodSeconds: 30
+{{- end }}

@@ -8,7 +8,12 @@ metadata:
   labels:
     app: covoiturage-service
 spec:
+  # Quand l'HPA est actif, on NE fixe PAS replicas ici : c'est l'HPA qui pilote
+  # le nombre de pods. Sinon ArgoCD (selfHeal) le ramènerait sans cesse à sa valeur
+  # et se battrait avec l'autoscaler.
+  {{- if not .Values.covoiturageService.hpa.enabled }}
   replicas: {{ .Values.covoiturageService.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       app: covoiturage-service
