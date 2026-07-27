@@ -17,6 +17,8 @@ metadata:
   name: demo-data
   namespace: velero-demo
 spec:
+  # storageClass "nfs" : le volume est un montage NFS (PAS hostPath) → Velero peut le sauvegarder.
+  storageClassName: nfs
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:
@@ -48,6 +50,9 @@ spec:
     metadata:
       labels:
         app: demo-app
+      annotations:
+        # Opt-in explicite : Velero sauvegarde le volume nommé "data" (File System Backup / Kopia)
+        backup.velero.io/backup-volumes: data
     spec:
       containers:
         - name: app
