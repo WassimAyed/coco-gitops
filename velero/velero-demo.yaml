@@ -1,0 +1,62 @@
+# =====================================================================
+#  velero-demo — namespace jetable pour PROUVER la sauvegarde/restauration.
+#  Contient : une ressource (ConfigMap), un volume persistant (PVC) et un
+#  pod qui le monte. On y écrira un fichier témoin, puis on supprimera tout
+#  le namespace et on le restaurera depuis Velero.
+#  NON géré par ArgoCD (isolé) → la démo prouve Velero, sans interférence.
+# =====================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero-demo
+---
+# Le volume persistant : c'est SA donnée qu'on veut voir survivre.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: demo-data
+  namespace: velero-demo
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi
+---
+# Une ressource Kubernetes classique, pour montrer que Velero restaure AUSSI les objets.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-config
+  namespace: velero-demo
+data:
+  message: "Ressource Kubernetes sauvegardee et restauree par Velero."
+---
+# Un pod qui monte le volume (busybox qui dort). On écrira dedans /data/hello-velero.txt
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-app
+  namespace: velero-demo
+  labels:
+    app: demo-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: demo-app
+  template:
+    metadata:
+      labels:
+        app: demo-app
+    spec:
+      containers:
+        - name: app
+          image: busybox:1.36
+          command: ["/bin/sh", "-c", "sleep infinity"]
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: demo-data
