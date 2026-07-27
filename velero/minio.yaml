@@ -1,0 +1,123 @@
+# =====================================================================
+#  MinIO — stockage objet compatible S3 (le "coffre" des sauvegardes Velero)
+#  Hébergé DANS le cluster (pas de cloud AWS). Velero y dépose ses archives.
+#  Appliqué à la main : kubectl apply -f velero/minio.yaml   (PAS géré par ArgoCD)
+# =====================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: velero
+---
+# Disque persistant où MinIO stocke les buckets (donc les sauvegardes)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: minio-storage
+  namespace: velero
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minio
+  namespace: velero
+  labels:
+    app: minio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: minio
+  template:
+    metadata:
+      labels:
+        app: minio
+    spec:
+      containers:
+        - name: minio
+          image: minio/minio:latest
+          args: ["server", "/data", "--console-address", ":9001"]
+          env:
+            # Identifiants d'accès (= clés S3 que Velero utilisera). Lab : à durcir en prod.
+            - name: MINIO_ROOT_USER
+              value: "minio"
+            - name: MINIO_ROOT_PASSWORD
+              value: "minio123"
+          ports:
+            - containerPort: 9000   # API S3
+            - containerPort: 9001   # console web
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          resources:
+            requests: {memory: "256Mi", cpu: "100m"}
+            limits:   {memory: "512Mi", cpu: "500m"}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: minio-storage
+---
+# Service interne : c'est l'adresse que Velero visera (http://minio.velero.svc:9000)
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio
+  namespace: velero
+  labels:
+    app: minio
+spec:
+  type: ClusterIP
+  selector:
+    app: minio
+  ports:
+    - name: s3
+      port: 9000
+      targetPort: 9000
+    - name: console
+      port: 9001
+      targetPort: 9001
+---
+# Console web exposée via MetalLB (pour visualiser les sauvegardes / captures d'écran)
+apiVersion: v1
+kind: Service
+metadata:
+  name: minio-console
+  namespace: velero
+  labels:
+    app: minio
+spec:
+  type: LoadBalancer
+  selector:
+    app: minio
+  ports:
+    - name: console
+      port: 9001
+      targetPort: 9001
+---
+# Job qui crée automatiquement le bucket "velero" au démarrage (zéro clic manuel)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: minio-create-bucket
+  namespace: velero
+spec:
+  backoffLimit: 6
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: mc
+          image: minio/mc:latest
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # Attend que MinIO réponde, puis crée le bucket "velero"
+              until mc alias set minio http://minio:9000 minio minio123; do
+                echo "MinIO pas encore prêt, attente..." ; sleep 3
+              done
+              mc mb --ignore-existing minio/velero
+              echo "Buckets disponibles :" && mc ls minio
