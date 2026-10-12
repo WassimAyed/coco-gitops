@@ -68,7 +68,7 @@ covoiturageService:
   enabled: true
   repository: covoiturage-service # => ghcr.io/wassimayed/covoiturage-service
   tag: 0467972a685fc6355bc5defa0384b95a7dcf026c
-  replicas: 1        # utilisé seulement si hpa.enabled = false
+  replicas: 1 # utilisé seulement si hpa.enabled = false
   port: 8092
   # Autoscaling horizontal : l'HPA pilote le nombre de pods selon le CPU
   hpa:
@@ -105,7 +105,7 @@ apiGateway:
 frontend:
   enabled: true
   repository: coco-frontend # => ghcr.io/wassimayed/coco-frontend
-  tag: a9576617e0122dca864edab1dc736ce301f11bbd
+  tag: 72b49cd915eae06347894d26c7662c2eb4fffa21
   replicas: 3 # 3 pods : assez pour illustrer le canary sans surcharger le cluster
   port: 80
   ingress:
