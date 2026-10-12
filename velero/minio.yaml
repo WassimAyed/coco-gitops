@@ -39,7 +39,10 @@ spec:
     spec:
       containers:
         - name: minio
-          image: minio/minio:latest
+          # Tag figé (pas :latest) : minio/minio:latest sur Docker Hub ne se télécharge plus
+          # ("unexpected media type text/html"). Version d'avril 2025 = console web complète.
+          image: quay.io/minio/minio:RELEASE.2025-04-22T22-12-26Z
+          imagePullPolicy: IfNotPresent
           args: ["server", "/data", "--console-address", ":9001"]
           env:
             # Identifiants d'accès (= clés S3 que Velero utilisera). Lab : à durcir en prod.
@@ -111,7 +114,8 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: mc
-          image: minio/mc:latest
+          image: quay.io/minio/mc:RELEASE.2025-04-16T18-13-26Z
+          imagePullPolicy: IfNotPresent
           command: ["/bin/sh", "-c"]
           args:
             - |
